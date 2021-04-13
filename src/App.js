@@ -1,18 +1,9 @@
-import React, { useState } from "react";
-import { gql, useQuery, useMutation } from "@apollo/client";
+import React, { useState, useCallback } from "react";
+import { gql, useQuery } from "@apollo/client";
 
 const ALL_PEOPLE = gql`
-  query AllPeople {
-    people {
-      id
-      name
-    }
-  }
-`;
-
-const ADD_PERSON = gql`
-  mutation AddPerson($name: String) {
-    addPerson(name: $name) {
+  query AllPeople($gender: String!) {
+    people(gender: $gender) {
       id
       name
     }
@@ -20,28 +11,18 @@ const ADD_PERSON = gql`
 `;
 
 export default function App() {
-  const [name, setName] = useState('');
+  const [gender, setGender] = useState('all');
   const {
     loading,
     data,
-  } = useQuery(ALL_PEOPLE);
+  } = useQuery(ALL_PEOPLE, { variables: { gender }, notifyOnNetworkStatusChange: false, fetchPolicy: 'network-only' });
 
-  const [addPerson] = useMutation(ADD_PERSON, {
-    update: (cache, { data: { addPerson: addPersonData } }) => {
-      const peopleResult = cache.readQuery({ query: ALL_PEOPLE });
+  const currentPeopleNames = data?.people?.map(person => person.name);
+  console.log('gender:', gender, ';', 'current names:', JSON.stringify(currentPeopleNames));
 
-      cache.writeQuery({
-        query: ALL_PEOPLE,
-        data: {
-          ...peopleResult,
-          people: [
-            ...peopleResult.people,
-            addPersonData,
-          ],
-        },
-      });
-    },
-  });
+  const genderRadioHandler = useCallback(event => {
+    setGender(event.target.value);
+  }, []);
 
   return (
     <main>
@@ -49,33 +30,21 @@ export default function App() {
       <p>
         This application can be used to demonstrate an error in Apollo Client.
       </p>
-      <div className="add-person">
-        <label htmlFor="name">Name</label>
-        <input 
-          type="text" 
-          name="name" 
-          value={name}
-          onChange={evt => setName(evt.target.value)}
-        />
-        <button
-          onClick={() => {
-            addPerson({ variables: { name } });
-            setName('');
-          }}
-        >
-          Add person
-        </button>
-      </div>
+      <input type="radio" name="gender" id="all" value="all" onChange={genderRadioHandler} checked={gender === 'all'} />
+      <label htmlFor="all">All</label>
+      <input type="radio" name="gender" id="male" value="male" onChange={genderRadioHandler} checked={gender === 'male'} />
+      <label htmlFor="male">Male</label>
+      <input type="radio" name="gender" id="female" value="female" onChange={genderRadioHandler} checked={gender === 'female'} />
+      <label htmlFor="female">Female</label>
+      <input type="radio" name="gender" id="nonbinary" value="nonbinary" onChange={genderRadioHandler} checked={gender === 'nonbinary'} />
+      <label htmlFor="nonbinary">Nonbinary</label>
       <h2>Names</h2>
-      {loading ? (
-        <p>Loading…</p>
-      ) : (
+        <p style={{ visibility: loading ? 'visible' : 'hidden' }}>Loading…</p>
         <ul>
           {data?.people.map(person => (
             <li key={person.id}>{person.name}</li>
           ))}
         </ul>
-      )}
     </main>
   );
 }

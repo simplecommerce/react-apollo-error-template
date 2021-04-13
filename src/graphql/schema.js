@@ -15,9 +15,11 @@ const PersonType = new GraphQLObjectType({
 });
 
 const peopleData = [
-  { id: 1, name: 'John Smith' },
-  { id: 2, name: 'Sara Smith' },
-  { id: 3, name: 'Budd Deey' },
+  { id: 1, name: 'John Smith', gender: 'male' },
+  { id: 2, name: 'Sara Smith', gender: 'female' },
+  { id: 3, name: 'Budd Deey', gender: 'nonbinary' },
+  { id: 4, name: 'Johnny Appleseed', gender: 'male' },
+  { id: 5, name: 'Ada Lovelace', gender: 'female' },
 ];
 
 const QueryType = new GraphQLObjectType({
@@ -25,7 +27,8 @@ const QueryType = new GraphQLObjectType({
   fields: {
     people: {
       type: new GraphQLList(PersonType),
-      resolve: () => peopleData,
+      args: { gender: { type: GraphQLString } },
+      resolve: (_, { gender }) => gender === 'all' ? peopleData : peopleData.filter(person => person.gender === gender),
     },
   },
 });
