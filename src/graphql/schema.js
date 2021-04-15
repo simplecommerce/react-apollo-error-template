@@ -4,6 +4,7 @@ import {
   GraphQLID,
   GraphQLString,
   GraphQLList,
+  GraphQLInt
 } from 'graphql';
 
 const PersonType = new GraphQLObjectType({
@@ -11,6 +12,7 @@ const PersonType = new GraphQLObjectType({
   fields: {
     id: { type: GraphQLID },
     name: { type: GraphQLString },
+    happinessLevel: { type: GraphQLInt },
   },
 });
 
@@ -25,7 +27,7 @@ const QueryType = new GraphQLObjectType({
   fields: {
     people: {
       type: new GraphQLList(PersonType),
-      resolve: () => peopleData,
+      resolve: () => peopleData.map(person => ({ ...person, happinessLevel: Math.floor(Math.random() * 101) })),
     },
   },
 });
