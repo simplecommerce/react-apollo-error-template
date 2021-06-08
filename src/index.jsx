@@ -4,6 +4,7 @@ import {
   GraphQLObjectType,
   GraphQLID,
   GraphQLString,
+  GraphQLInt,
   GraphQLList,
 } from 'graphql';
 const PersonType = new GraphQLObjectType({
@@ -25,7 +26,10 @@ const QueryType = new GraphQLObjectType({
   fields: {
     people: {
       type: new GraphQLList(PersonType),
-      resolve: () => peopleData,
+      args: {
+        page: { type: GraphQLInt },
+      },
+      resolve: (_, { page }) => page === 1 ? peopleData : new Error('Test Error'),
     },
   },
 });
@@ -82,7 +86,7 @@ const link = new ApolloLink(operation => {
 });
 
 /*** APP ***/
-import React, { useState } from "react";
+import React from "react";
 import { render } from "react-dom";
 import {
   ApolloClient,
@@ -90,49 +94,29 @@ import {
   InMemoryCache,
   gql,
   useQuery,
-  useMutation,
 } from "@apollo/client";
 import "./index.css";
 
 const ALL_PEOPLE = gql`
-  query AllPeople {
-    people {
+  query AllPeople($page: Int!) {
+    people(page: $page) {
       id
       name
     }
   }
 `;
 
-const ADD_PERSON = gql`
-  mutation AddPerson($name: String) {
-    addPerson(name: $name) {
-      id
-      name
-    }
-  }
-`;
 
 function App() {
-  const [name, setName] = useState('');
   const {
     loading,
     data,
-  } = useQuery(ALL_PEOPLE);
-
-  const [addPerson] = useMutation(ADD_PERSON, {
-    update: (cache, { data: { addPerson: addPersonData } }) => {
-      const peopleResult = cache.readQuery({ query: ALL_PEOPLE });
-
-      cache.writeQuery({
-        query: ALL_PEOPLE,
-        data: {
-          ...peopleResult,
-          people: [
-            ...peopleResult.people,
-            addPersonData,
-          ],
-        },
-      });
+    fetchMore,
+  } = useQuery(ALL_PEOPLE, {
+    errorPolicy: 'none',
+    variables: { page: 1 },
+    onError: () => {
+      console.log('error correctly passed to onError callback');
     },
   });
 
@@ -142,32 +126,20 @@ function App() {
       <p>
         This application can be used to demonstrate an error in Apollo Client.
       </p>
-      <div className="add-person">
-        <label htmlFor="name">Name</label>
-        <input
-          type="text"
-          name="name"
-          value={name}
-          onChange={evt => setName(evt.target.value)}
-        />
-        <button
-          onClick={() => {
-            addPerson({ variables: { name } });
-            setName('');
-          }}
-        >
-          Add person
-        </button>
-      </div>
       <h2>Names</h2>
       {loading ? (
         <p>Loading…</p>
       ) : (
-        <ul>
-          {data?.people.map(person => (
-            <li key={person.id}>{person.name}</li>
-          ))}
-        </ul>
+        <>
+          <ul>
+            {data?.people.map(person => (
+              <li key={person.id}>{person.name}</li>
+            ))}
+          </ul>
+          <button onClick={() => fetchMore({ variables: { page: 2 } }).catch(() => console.log('error thrown from fetchMore instead of passed to onError'))}>
+            Fetch More
+          </button>
+        </>
       )}
     </main>
   );
