@@ -85,7 +85,7 @@ const link = new ApolloLink(operation => {
 });
 
 /*** APP ***/
-import React, { useState } from "react";
+import React from "react";
 import { render } from "react-dom";
 import {
   ApolloClient,
@@ -93,7 +93,6 @@ import {
   InMemoryCache,
   gql,
   useQuery,
-  useMutation,
 } from "@apollo/client";
 import "./index.css";
 
