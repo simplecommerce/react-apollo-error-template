@@ -1,57 +1,25 @@
 /*** SCHEMA ***/
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLID,
-  GraphQLString,
-  GraphQLList,
-} from 'graphql';
-const PersonType = new GraphQLObjectType({
-  name: 'Person',
-  fields: {
-    id: { type: GraphQLID },
-    name: { type: GraphQLString },
+import { gql } from "@apollo/client";
+import { buildASTSchema } from "graphql";
+import { addResolversToSchema } from "@graphql-tools/schema";
+
+const schemaAST = gql`
+  type TestResult {
+    testField: String!
+  }
+
+  type Query {
+    test: TestResult!
+  }
+`;
+
+const schemaWithoutResolvers = buildASTSchema(schemaAST);
+const resolvers = {
+  Query: {
+    test: () => ({ testField: "hello world! :D" }),
   },
-});
-
-const peopleData = [
-  { id: 1, name: 'John Smith' },
-  { id: 2, name: 'Sara Smith' },
-  { id: 3, name: 'Budd Deey' },
-];
-
-const QueryType = new GraphQLObjectType({
-  name: 'Query',
-  fields: {
-    people: {
-      type: new GraphQLList(PersonType),
-      resolve: () => peopleData,
-    },
-  },
-});
-
-const MutationType = new GraphQLObjectType({
-  name: 'Mutation',
-  fields: {
-    addPerson: {
-      type: PersonType,
-      args: {
-        name: { type: GraphQLString },
-      },
-      resolve: function (_, { name }) {
-        const person = {
-          id: peopleData[peopleData.length - 1].id + 1,
-          name,
-        };
-
-        peopleData.push(person);
-        return person;
-      }
-    },
-  },
-});
-
-const schema = new GraphQLSchema({ query: QueryType, mutation: MutationType });
+};
+const schema = addResolversToSchema({ schema: schemaWithoutResolvers, resolvers });
 
 /*** LINK ***/
 import { graphql, print } from "graphql";
@@ -88,53 +56,23 @@ import {
   ApolloClient,
   ApolloProvider,
   InMemoryCache,
-  gql,
   useQuery,
-  useMutation,
 } from "@apollo/client";
 import "./index.css";
 
-const ALL_PEOPLE = gql`
-  query AllPeople {
-    people {
-      id
-      name
-    }
-  }
-`;
-
-const ADD_PERSON = gql`
-  mutation AddPerson($name: String) {
-    addPerson(name: $name) {
-      id
-      name
+const TEST = gql`
+  query Test {
+    test {
+      testField
     }
   }
 `;
 
 function App() {
-  const [name, setName] = useState('');
   const {
     loading,
     data,
-  } = useQuery(ALL_PEOPLE);
-
-  const [addPerson] = useMutation(ADD_PERSON, {
-    update: (cache, { data: { addPerson: addPersonData } }) => {
-      const peopleResult = cache.readQuery({ query: ALL_PEOPLE });
-
-      cache.writeQuery({
-        query: ALL_PEOPLE,
-        data: {
-          ...peopleResult,
-          people: [
-            ...peopleResult.people,
-            addPersonData,
-          ],
-        },
-      });
-    },
-  });
+  } = useQuery(TEST);
 
   return (
     <main>
@@ -142,32 +80,11 @@ function App() {
       <p>
         This application can be used to demonstrate an error in Apollo Client.
       </p>
-      <div className="add-person">
-        <label htmlFor="name">Name</label>
-        <input
-          type="text"
-          name="name"
-          value={name}
-          onChange={evt => setName(evt.target.value)}
-        />
-        <button
-          onClick={() => {
-            addPerson({ variables: { name } });
-            setName('');
-          }}
-        >
-          Add person
-        </button>
-      </div>
-      <h2>Names</h2>
+      <h2>Test</h2>
       {loading ? (
         <p>Loading…</p>
       ) : (
-        <ul>
-          {data?.people.map(person => (
-            <li key={person.id}>{person.name}</li>
-          ))}
-        </ul>
+        JSON.stringify(data)
       )}
     </main>
   );
