@@ -66,7 +66,8 @@ function delay(wait) {
 const link = new ApolloLink(operation => {
   return new Observable(async observer => {
     const { query, operationName, variables } = operation;
-    await delay(300);
+    console.log('Query', operationName, 'request sent to server');
+    await delay(500);
     try {
       const result = await graphql(
         schema,
@@ -78,6 +79,7 @@ const link = new ApolloLink(operation => {
       );
       observer.next(result);
       observer.complete();
+      console.log('Query', operationName, 'resolved');
     } catch (err) {
       observer.error(err);
     }
@@ -110,10 +112,9 @@ export default function App() {
   const {
     loading,
     data,
-  } = useQuery(ALL_PEOPLE, { variables: { gender }, notifyOnNetworkStatusChange: false, fetchPolicy: 'network-only' });
+  } = useQuery(ALL_PEOPLE, { variables: { gender }, notifyOnNetworkStatusChange: true, fetchPolicy: 'network-only', nextFetchPolicy: 'cache-first' });
 
   const currentPeopleNames = data?.people?.map(person => person.name);
-  console.log('gender:', gender, ';', 'current names:', JSON.stringify(currentPeopleNames));
 
   const genderRadioHandler = useCallback(event => {
     setGender(event.target.value);
