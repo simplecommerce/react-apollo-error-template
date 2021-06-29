@@ -11,14 +11,14 @@ const schemaAST = gql`
   }
 
   type Query {
-    myNumbers(inputNumbers: [Int!]!): [MyNumbers!]!
+    myNumbers(inputNumber: Int!): MyNumbers!
   }
 `;
 
 const schemaWithoutResolvers = buildASTSchema(schemaAST);
 const resolvers = {
   Query: {
-    myNumbers: (_, { inputNumbers }) => inputNumbers.map(inputNumber => ({ id: String(inputNumber), numberPlusOne: inputNumber + 1, numberPlusTwo: inputNumber + 2 })),
+    myNumbers: (_, { inputNumber }) => ({ id: String(inputNumber), numberPlusOne: inputNumber + 1, numberPlusTwo: inputNumber + 2 }),
   },
 };
 const schema = addResolversToSchema({ schema: schemaWithoutResolvers, resolvers });
@@ -68,7 +68,7 @@ import "./index.css";
 
 const MY_NUMBER_PLUS_ONE = gql`
   query GetMyNumberPlusOne($inputNumber: Int!) {
-    myNumbers(inputNumbers: [$inputNumber]) {
+    myNumbers(inputNumber: $inputNumber) {
       id
       numberPlusOne
     }
@@ -77,7 +77,7 @@ const MY_NUMBER_PLUS_ONE = gql`
 
 const MY_NUMBER_PLUS_TWO = gql`
   query GetMyNumberPlusTwo($inputNumber: Int!) {
-    myNumbers(inputNumbers: [$inputNumber]) {
+    myNumbers(inputNumber: $inputNumber) {
       id
       numberPlusTwo
     }
