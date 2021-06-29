@@ -106,7 +106,15 @@ function App() {
       <p>
         This application can be used to demonstrate an error in Apollo Client.
       </p>
-      <input type="number" value={inputNumber} onChange={inputChangeHandler} />
+      Pick a number:
+      <input type="radio" id="1" name="inputNumber" onChange={inputChangeHandler} checked={inputNumber === 1} value="1" />
+      <label htmlFor="1">1</label>
+      <input type="radio" id="2" name="inputNumber" onChange={inputChangeHandler} checked={inputNumber === 2} value="2" />
+      <label htmlFor="2">2</label>
+      <input type="radio" id="3" name="inputNumber" onChange={inputChangeHandler} checked={inputNumber === 3} value="3" />
+      <label htmlFor="3">3</label>
+      <input type="radio" id="4" name="inputNumber" onChange={inputChangeHandler} checked={inputNumber === 4} value="4" />
+      <label htmlFor="4">4</label>
       {loading1 ? (
         <p>Loading 1…</p>
       ) : (
