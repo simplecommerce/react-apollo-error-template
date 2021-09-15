@@ -56,7 +56,7 @@ const link = new ApolloLink(operation => {
 });
 
 /*** APP ***/
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { render } from "react-dom";
 import {
   ApolloClient,
