@@ -92,9 +92,20 @@ const ALL_PEOPLE = gql`
   }
 `;
 
-function App() {
+function PeopleList() {
   const { loading, data } = useQuery(ALL_PEOPLE);
+  return loading ? (
+    <p>Loading…</p>
+  ) : (
+    <ul>
+      {data?.people.map((person) => (
+        <li key={person.id}>{person.name}</li>
+      ))}
+    </ul>
+  );
+}
 
+function App() {
   return (
     <main>
       <h1>Apollo Client Issue Reproduction</h1>
@@ -102,15 +113,7 @@ function App() {
         This application can be used to demonstrate an error in Apollo Client.
       </p>
       <h2>Names</h2>
-      {loading ? (
-        <p>Loading…</p>
-      ) : (
-        <ul>
-          {data?.people.map((person) => (
-            <li key={person.id}>{person.name}</li>
-          ))}
-        </ul>
-      )}
+      <PeopleList />
     </main>
   );
 }
