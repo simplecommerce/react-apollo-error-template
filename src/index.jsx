@@ -72,7 +72,7 @@ const link = new ApolloLink((operation) => {
 });
 
 /*** APP ***/
-import React from "react";
+import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   ApolloClient,
@@ -92,8 +92,12 @@ const ALL_PEOPLE = gql`
   }
 `;
 
-function PeopleList() {
-  const { loading, data } = useQuery(ALL_PEOPLE);
+function PeopleList({ setIsQueryCompleted }) {
+  const { loading, data } = useQuery(ALL_PEOPLE, {
+    onCompleted: () => {
+      setIsQueryCompleted(true);
+    },
+  });
   return loading ? (
     <p>Loading…</p>
   ) : (
@@ -106,14 +110,29 @@ function PeopleList() {
 }
 
 function App() {
+  const [isParentQueryCompleted, setIsParentQueryCompleted] = useState(false);
+  const [isChildQueryCompleted, setIsChildQueryCompleted] = useState(false);
+  const [showPeopleList, setShowPeopleList] = useState(false);
+  useQuery(ALL_PEOPLE, {
+    onCompleted: () => {
+      setIsParentQueryCompleted(true);
+    },
+  });
   return (
     <main>
       <h1>Apollo Client Issue Reproduction</h1>
       <p>
         This application can be used to demonstrate an error in Apollo Client.
       </p>
+      <h2>Parent query completed: {String(isParentQueryCompleted)}</h2>
+      <h2>Child query completed: {String(isChildQueryCompleted)}</h2>
+      <button onClick={() => setShowPeopleList(true)}>
+        Click me after parent query completed
+      </button>
       <h2>Names</h2>
-      <PeopleList />
+      {showPeopleList && (
+        <PeopleList setIsQueryCompleted={setIsChildQueryCompleted} />
+      )}
     </main>
   );
 }
