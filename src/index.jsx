@@ -80,6 +80,7 @@ import {
   InMemoryCache,
   gql,
   useQuery,
+  useMutation,
 } from "@apollo/client";
 import "./index.css";
 
@@ -88,6 +89,14 @@ const ALL_PEOPLE = gql`
     people {
       id
       name
+    }
+  }
+`;
+
+const ADD_PERSON = gql`
+  mutation AddPerson($name: String) {
+    addPerson(name: $name) {
+        name
     }
   }
 `;
@@ -114,10 +123,20 @@ function App() {
   const [isChildQueryCompleted, setIsChildQueryCompleted] = useState(false);
   const [showPeopleList, setShowPeopleList] = useState(false);
   useQuery(ALL_PEOPLE, {
-    onCompleted: () => {
-      setIsParentQueryCompleted(true);
-    },
+    // onCompleted: () => {
+    //   setIsParentQueryCompleted(true);
+    // },
   });
+  const [mutate] = useMutation(ADD_PERSON,{
+    variables: {
+        name: "test"
+    },
+    onCompleted: () => {
+        console.log("mutate onCompleted called")
+        setShowPeopleList(true);
+        setIsParentQueryCompleted(true);
+    },  
+  })
   return (
     <main>
       <h1>Apollo Client Issue Reproduction</h1>
@@ -126,7 +145,7 @@ function App() {
       </p>
       <h2>Parent query completed: {String(isParentQueryCompleted)}</h2>
       <h2>Child query completed: {String(isChildQueryCompleted)}</h2>
-      <button onClick={() => setShowPeopleList(true)}>
+      <button onClick={() => mutate()}>
         Click me after parent query completed
       </button>
       <h2>Names</h2>
